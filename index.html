@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,113 +8,101 @@
     <link rel="manifest" href="data:application/manifest+json,{'name':'WhatsAppPro','short_name':'WAPro','start_url':'.','display':'standalone','background_color':'#ffffff','theme_color':'#075e54','icons':[{'src':'https://cdn-icons-png.flaticon.com/512/124/124034.png','sizes':'512x512','type':'image/png'}]}">
     
     <script src="https://cdn.jsdelivr.net/npm/gun/gun.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gun/sea.js"></script>
-
+    
     <style>
         :root { --green: #075e54; --light-green: #25d366; --bg: #e5ddd5; --my-msg: #dcf8c6; --white: #ffffff; }
-        body, html { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; height: 100%; background: #000; overflow: hidden; }
+        body, html { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; height: 100%; background: #111; overflow: hidden; }
         #app { max-width: 500px; margin: 0 auto; background: var(--white); height: 100%; display: flex; flex-direction: column; position: relative; }
-        
         header { background: var(--green); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
         .nav-tabs { background: var(--green); display: flex; color: rgba(255,255,255,0.7); text-align: center; font-size: 14px; font-weight: bold; }
         .tab { flex: 1; padding: 15px; cursor: pointer; border-bottom: 3px solid transparent; }
         .tab.active { color: white; border-bottom: 3px solid white; }
-
         .page { flex: 1; overflow-y: auto; display: none; background: white; }
         .page.active { display: block; }
-
         .item { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #f2f2f2; cursor: pointer; }
-        .avatar { width: 50px; height: 50px; background: #128c7e; border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 20px; }
-        
+        .avatar { width: 45px; height: 45px; background: #128c7e; border-radius: 50%; margin-right: 15px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
         #chat-window { position: absolute; top: 0; left: 100%; width: 100%; height: 100%; background: var(--bg); display: flex; flex-direction: column; transition: 0.3s; z-index: 1000; }
         #chat-window.open { left: 0; }
         .chat-head { background: var(--green); color: white; padding: 10px; display: flex; align-items: center; gap: 10px; }
         #messages { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; background: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); }
-        
-        .bubble { margin-bottom: 8px; padding: 10px 15px; border-radius: 12px; max-width: 80%; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
-        .me { align-self: flex-end; background: var(--my-msg); border-top-right-radius: 0; }
-        .them { align-self: flex-start; background: var(--white); border-top-left-radius: 0; }
-
-        .chat-foot { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; }
-        .chat-foot input { flex: 1; border: none; padding: 12px; border-radius: 25px; outline: none; }
-        .action-btn { background: var(--green); border: none; color: white; width: 45px; height: 45px; border-radius: 50%; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; }
-
-        .fab { position: absolute; bottom: 25px; right: 25px; background: var(--light-green); width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 30px; border: none; cursor: pointer; z-index: 500; }
+        .bubble { margin-bottom: 8px; padding: 10px; border-radius: 8px; max-width: 80%; position: relative; font-size: 14px; box-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+        .me { align-self: flex-end; background: var(--my-msg); }
+        .them { align-self: flex-start; background: var(--white); }
+        .del-msg { font-size: 10px; color: red; cursor: pointer; display: block; text-align: right; margin-top: 5px; }
+        .chat-foot { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 8px; }
+        input { flex: 1; border: none; padding: 12px; border-radius: 25px; outline: none; }
+        .btn { background: var(--green); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; }
+        .fab { position: absolute; bottom: 20px; right: 20px; background: var(--light-green); width: 55px; height: 55px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 25px; border: none; cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+        .del-btn { background: #ff4444; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; margin-left: auto; }
     </style>
 </head>
 <body>
 
 <div id="app">
-    <header><span>WhatsApp Pro</span><div style="font-size: 20px;">🔍 ⋮</div></header>
+    <header><span>WhatsApp Pro</span><button onclick="clearAllData()" style="background:none; border:none; color:white; font-size:12px;">DELETE ALL</button></header>
     <div class="nav-tabs">
         <div class="tab active" onclick="switchTab('chats', this)">CHATS</div>
-        <div class="tab" onclick="switchTab('status', this)">STATUS</div>
-        <div class="tab" onclick="switchTab('calls', this)">CALLS</div>
+        <div class="tab">STATUS</div>
+        <div class="tab">CALLS</div>
     </div>
 
     <div id="chats-page" class="page active"><div id="contact-list"></div></div>
-    <div id="status-page" class="page"><div class="item"><div class="avatar" style="background:#ccc">+</div><div class="info"><b>My Status</b><small>Tap to add update</small></div></div></div>
-    <div id="calls-page" class="page"><p style="text-align:center; margin-top:50px; color:#888;">No recent calls</p></div>
 
     <button class="fab" onclick="addNewFriend()">💬</button>
 
     <div id="chat-window">
         <div class="chat-head">
-            <button onclick="closeChat()" style="background:none; border:none; color:white; font-size:25px;">←</button>
-            <div class="avatar" id="chat-avatar" style="width:38px; height:38px; font-size:16px;">?</div>
-            <div style="flex:1"><b id="chat-title">Name</b><br><small id="status-text">Online</small></div>
-            <div style="display:flex; gap:20px; font-size: 22px;">
-                <span onclick="makeCall()">📞</span>
-                <span onclick="makeCall()">📹</span>
+            <button onclick="closeChat()" style="background:none; border:none; color:white; font-size:22px;">←</button>
+            <div class="avatar" id="chat-avatar" style="width:35px; height:35px;">?</div>
+            <div style="flex:1"><b id="chat-title">Name</b></div>
+            <div style="display:flex; gap:15px; font-size: 20px;">
+                <span onclick="startCall()">📞</span>
+                <span onclick="startCall()">📹</span>
             </div>
         </div>
         <div id="messages"></div>
         <div class="chat-foot">
             <input type="text" id="msg-input" placeholder="Type a message...">
-            <button class="action-btn" onclick="sendMsg()">➤</button>
+            <button class="btn" onclick="sendMsg()">➤</button>
         </div>
     </div>
 </div>
 
 <script>
-    // MULTI-SERVER RELAY (Is se connection fail nahi hoga)
-    const gun = Gun({
-        peers: [
-            'https://gun-manhattan.herokuapp.com/gun',
-            'https://gun-server-v2.herokuapp.com/gun',
-            'https://gundb.herokuapp.com/gun'
-        ]
-    });
+    // AUTO-HEALING CONNECTION (Multiple peers for stability)
+    const gun = Gun({ peers: ['https://gun-manhattan.herokuapp.com/gun', 'https://gundb.herokuapp.com/gun'] });
 
-    const myNum = localStorage.getItem('wa_num') || prompt("Enter Your Phone Number:");
+    const myNum = localStorage.getItem('wa_num') || prompt("Apna Number Enter Karein:");
     if(myNum) localStorage.setItem('wa_num', myNum);
 
     let activeRoomID = null;
     let friends = JSON.parse(localStorage.getItem('wa_friends') || '[]');
 
-    function switchTab(tab, el) {
+    function switchTab(t, el) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(tab + '-page').classList.add('active');
+        document.getElementById(t + '-page').classList.add('active');
+        document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
         el.classList.add('active');
-        if(tab === 'chats') renderFriends();
     }
 
     function renderFriends() {
         const list = document.getElementById('contact-list');
         list.innerHTML = '';
-        friends.forEach(f => {
+        friends.forEach((f, index) => {
             const div = document.createElement('div');
             div.className = 'item';
-            div.onclick = () => openChat(f.name, f.num);
-            div.innerHTML = `<div class="avatar">${f.name[0]}</div><div class="info"><b>${f.name}</b><small>${f.num}</small></div>`;
+            div.innerHTML = `
+                <div class="avatar" onclick="openChat('${f.name}', '${f.num}')">${f.name[0]}</div>
+                <div class="info" onclick="openChat('${f.name}', '${f.num}')"><b>${f.name}</b><small>${f.num}</small></div>
+                <button class="del-btn" onclick="deleteFriend(${index})">Delete</button>
+            `;
             list.appendChild(div);
         });
     }
 
     function addNewFriend() {
-        const n = prompt("Name:");
-        const p = prompt("Phone Number:");
+        const n = prompt("Dost ka Naam:");
+        const p = prompt("Dost ka Number (Same format as yours):");
         if(n && p) {
             friends.push({name: n, num: p});
             localStorage.setItem('wa_friends', JSON.stringify(friends));
@@ -123,22 +110,31 @@
         }
     }
 
+    function deleteFriend(index) {
+        if(confirm("Dost ko delete karein?")) {
+            friends.splice(index, 1);
+            localStorage.setItem('wa_friends', JSON.stringify(friends));
+            renderFriends();
+        }
+    }
+
     function openChat(name, num) {
-        activeRoomID = [myNum, num].sort().join('-');
+        activeRoomID = [myNum, num].sort().join('_');
         document.getElementById('chat-title').innerText = name;
-        document.getElementById('chat-avatar').innerText = name[0];
         document.getElementById('chat-window').classList.add('open');
         document.getElementById('messages').innerHTML = '';
 
-        // Real-time listener
-        gun.get('whatsapp-room-' + activeRoomID).map().once((data, id) => {
+        gun.get('chat_v3_' + activeRoomID).map().on((data, id) => {
             if(data && data.text) {
+                if(document.getElementById(id)) return; // Avoid duplicates
                 const b = document.createElement('div');
+                b.id = id;
                 b.className = `bubble ${data.sender === myNum ? 'me' : 'them'}`;
-                b.innerText = data.text;
+                b.innerHTML = `${data.text} <span class="del-msg" onclick="deleteMsg('${id}')">×</span>`;
                 document.getElementById('messages').appendChild(b);
-                const box = document.getElementById('messages');
-                box.scrollTop = box.scrollHeight;
+                document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+            } else if (document.getElementById(id)) {
+                document.getElementById(id).remove(); // Handle delete
             }
         });
     }
@@ -146,22 +142,21 @@
     function sendMsg() {
         const inp = document.getElementById('msg-input');
         if(inp.value.trim() && activeRoomID) {
-            gun.get('whatsapp-room-' + activeRoomID).set({
-                sender: myNum,
-                text: inp.value,
-                time: Date.now()
-            });
+            gun.get('chat_v3_' + activeRoomID).set({ sender: myNum, text: inp.value });
             inp.value = '';
         }
     }
 
-    function makeCall() {
-        if(activeRoomID) {
-            window.open(`https://meet.jit.si/WA-PRO-${activeRoomID}`, '_blank');
-        }
+    function deleteMsg(id) {
+        gun.get('chat_v3_' + activeRoomID).get(id).put(null);
+    }
+
+    function startCall() {
+        window.open(`https://meet.jit.si/WA_PRO_V3_${activeRoomID}`, '_blank');
     }
 
     function closeChat() { document.getElementById('chat-window').classList.remove('open'); }
+    function clearAllData() { localStorage.clear(); location.reload(); }
 
     renderFriends();
 </script>
